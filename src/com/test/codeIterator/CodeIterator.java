@@ -66,7 +66,4 @@ public class CodeIterator {
         return sql;
     }
 
-    // 使用清单、汇总表改成固定列展示，
-    // 汇总表拆分出 可使用 与 已使用分表, 更新测试系统并配置页面。
-
 }

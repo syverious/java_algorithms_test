@@ -57,7 +57,7 @@ public class QuantumMechanics {
             threads[i].start();
         }
 
-        // 等待所有钱强执行完感
+        // 等待所有线程执行完
         for(int i=0;i< NUM_THREADS; i++){
             threads[i].join();
         }
