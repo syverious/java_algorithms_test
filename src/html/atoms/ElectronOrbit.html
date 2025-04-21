@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--2025-4-17-->
+    <!--Hydrogen Electron Orbit Visualizer-->
+    <!--aided by DeepSeek-V3-->
+    <title>电子轨道可视化</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial;
+            font-size: 24px;
+            height: 40px;
+        }
+
+        #orbitSelector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-family: Arial;
+            font-size: 20px;
+            height: 40px;
+        }
+
+        #toggleAxesBtn {
+            position: absolute;
+            top: 10px;
+            right: 500px;
+            font-family: Arial;
+            font-size: 20px;
+            height: 40px;
+        }
+
+        #legendGradient {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+
+            height: 40px;
+            width: 200px;
+            margin: 5px 0;
+        }
+
+        #quantumControls {
+            position: absolute;
+            top: 10px;
+            right: 170px;
+            display: flex;
+            gap: 10px;
+        }
+
+        #quantumControls select {
+            font-family: Arial;
+            font-size: 20px;
+            height: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="legendGradient"></div>
+    <button id="toggleAxesBtn">关闭坐标轴</button>
+
+    <div id="quantumControls">
+        <select id="nSelector">
+            <option value="0">n=1</option>
+            <option value="1">n=2</option>
+            <option value="2">n=3</option>
+            <option value="3">n=4</option>
+            <option value="4">n=5</option>
+            <option value="5">n=6</option>
+            <option value="6">n=7</option>
+        </select>
+        <select id="lSelector">
+            <option value="0">l=0</option>
+        </select>
+        <select id="mSelector">
+            <option value="0">m=0</option>
+        </select>
+    </div>
+
+    <div id="info">选择轨道: </div>
+    <select id="orbitSelector">
+        <option value="0">1s</option>
+        <option value="1">2s</option>
+        <option value="2">2p_z</option>
+        <option value="3">2p_x</option>
+        <option value="4">2p_y</option>
+        <option value="5">3d_z²</option>
+    </select>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        let currentOrbit = 0;
+        // 修改orbits数组，增加更多轨道示例
+        const orbits = [
+            { n: 1, l: 0, m: 0, name: "1s" },
+            { n: 2, l: 0, m: 0, name: "2s" },
+            { n: 2, l: 1, m: 0, name: "2p" },
+            { n: 2, l: 1, m: -1, name: "2p_y" },
+            { n: 2, l: 1, m: 1, name: "2p_x" },
+            { n: 3, l: 0, m: 0, name: "3s" },
+            { n: 3, l: 1, m: 0, name: "3p" },
+            { n: 3, l: 1, m: -1, name: "3p_y" },
+            { n: 3, l: 1, m: 1, name: "3p_x" },
+            { n: 3, l: 2, m: 0, name: "3d_z²" },
+            { n: 3, l: 2, m: -1, name: "3d_y" },
+            { n: 3, l: 2, m: 1, name: "3d_x" },
+            { n: 3, l: 2, m: -2, name: "3d_xy" },
+            // { n: 3, l: 2, m: 2, name: "3d_x²-y²" },
+            { n: 4, l: 0, m: 0, name: "4s" },
+            { n: 4, l: 1, m: 0, name: "4p" },
+            { n: 4, l: 1, m: -1, name: "4p_y" },
+            { n: 4, l: 2, m: 0, name: "4d_z²" },
+            { n: 4, l: 2, m: -2, name: "4d_xy" },
+            { n: 4, l: 3, m: 0, name: "4f_z²" },
+            { n: 4, l: 3, m: -3, name: "4f_z²y" },
+            { n: 5, l: 0, m: 0, name: "5s" },
+            { n: 5, l: 1, m: 0, name: "5p" },
+            { n: 5, l: 2, m: 0, name: "5d_z²" },
+            { n: 5, l: 3, m: 0, name: "5f_z²" },
+            { n: 5, l: 3, m: -2, name: "5f_xy" },
+            { n: 5, l: 4, m: 0, name: "5g_z²" },
+            { n: 6, l: 0, m: 0, name: "6s" },
+            { n: 6, l: 1, m: 0, name: "6p" },
+            { n: 6, l: 2, m: 0, name: "6d_z²" },
+            { n: 6, l: 3, m: 0, name: "6f_z²" },
+            { n: 6, l: 4, m: 0, name: "6g_z²" },
+            { n: 6, l: 5, m: 0, name: "6h_z²" },
+            { n: 7, l: 5, m: 0, name: "7h_z²" }
+        ];
+
+        let initOrbNames = '';
+        orbits.forEach((orbit, index) => {
+            orbit.name = getOrbitName(orbit.n, orbit.l, orbit.m);
+            initOrbNames += '{ n: ' + orbit.n + ', l: ' + orbit.l + ', m: ' + orbit.m + ', name: "' + orbit.name + '" },\n'
+        });
+        console.log(initOrbNames);
+
+        let orbit = orbits[currentOrbit]; // 初始轨道
+
+        // 在JavaScript部分添加控制逻辑
+        // 初始化量子数选择器
+        function initQuantumSelectors() {
+            const nSelector = document.getElementById('nSelector');
+            const lSelector = document.getElementById('lSelector');
+            const mSelector = document.getElementById('mSelector');
+
+            // n值变化时更新l选项
+            nSelector.addEventListener('change', () => {
+                const n = parseInt(nSelector.value) + 1;
+                lSelector.innerHTML = '';
+
+                for (let l = 0; l < n; l++) {
+                    const option = document.createElement('option');
+                    option.value = l;
+                    option.textContent = `l=${l}`;
+                    lSelector.appendChild(option);
+                }
+
+                updateMSelector();
+            });
+
+            // l值变化时更新m选项
+            lSelector.addEventListener('change', updateMSelector);
+
+            // 三个选择器都变化时更新轨道
+            [nSelector, lSelector, mSelector].forEach(selector => {
+                selector.addEventListener('change', updateOrbit);
+            });
+        }
+
+        // 更新m选择器选项
+        function updateMSelector() {
+            const lSelector = document.getElementById('lSelector');
+            const mSelector = document.getElementById('mSelector');
+            const l = parseInt(lSelector.value);
+
+            mSelector.innerHTML = '';
+            for (let m = -l; m <= l; m++) {
+                const option = document.createElement('option');
+                option.value = m;
+                option.textContent = `m=${m}`;
+                mSelector.appendChild(option);
+            }
+        }
+
+        // 根据选择器值更新轨道
+        function updateOrbit() {
+            const n = parseInt(document.getElementById('nSelector').value) + 1;
+            const l = parseInt(document.getElementById('lSelector').value);
+            const m = parseInt(document.getElementById('mSelector').value);
+
+            // 在orbits数组中查找匹配的轨道
+            orbit.n = n;
+            orbit.l = l;
+            orbit.m = m;
+            // 更新轨道名称
+            orbit.name = getOrbitName(n, l, m);
+            simulate();
+        }
+
+        // 在初始化时调用
+        initQuantumSelectors();
+
+        // 初始化场景
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 创建颜色图例
+        function initColorLegend() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 40;
+            const ctx = canvas.getContext('2d');
+
+            const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+            for (let i = 0; i <= 1; i += 0.01) {
+                // 模拟半径从0到20的渐变    3.542   11.242   7.7
+                const r = (i + 0.46) * 7.7;
+                const hue = 0.3 + 1.2 * Math.exp(-0.15 * r);
+                // const hue = 0.24 + 1.2 * Math.exp(-0.15 * r);
+                gradient.addColorStop(i, `hsl(${hue * 360}, 40%, 53%)`);
+            }
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 200, 20);
+
+            document.getElementById('legendGradient').appendChild(canvas);
+        }
+
+        // 在初始化场景后调用
+        initColorLegend();
+
+        // 在全局变量部分添加
+        let showAxes = true; // 控制是否显示坐标轴
+        let axesHelper; // 先声明变量
+
+        // 在初始化场景后添加坐标轴
+        function createAxesHelper(points, scale) {
+            // 计算点云边界
+            let maxExtent = 0;
+            for (let i = 0; i < points.length; i += 3) {
+                const x = Math.abs(points[i]);
+                const y = Math.abs(points[i + 1]);
+                const z = Math.abs(points[i + 2]);
+                maxExtent = Math.max(maxExtent, x, y, z);
+            }
+            if (points.length == 0) maxExtent = 9;
+            const axisLength = maxExtent * scale; // 取最大绝对值的2/3
+
+            // 移除旧坐标轴
+            if (axesHelper) scene.remove(axesHelper);
+
+            // 创建新坐标轴
+            axesHelper = new THREE.AxesHelper(axisLength);
+            // axesHelper.lineWidth = 3;
+            // 定义轴颜色
+            const axisColors = {
+                x: 0xFF7F24, // 红色
+                y: 0x00ff00, // 绿色
+                z: 0x1b4fbe  // 蓝色
+            };
+
+            // 添加刻度标记
+            const tickSize = axisLength * 0.01; // 刻度大小
+            const tickMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+            const tickNumber = 3 * orbit.n ** 2;
+            // 为每个轴添加4个刻度
+            ['x', 'y', 'z'].forEach(axis => {
+                for (let i = 1; i <= tickNumber; i++) {
+                    const tickPosition = i * axisLength / (tickNumber + 1);
+                    const tickGeometry = new THREE.BufferGeometry();
+
+                    if (axis === 'x') {
+                        // red
+                        tickGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                            tickPosition, 0, 0,
+                            tickPosition, 2 * tickSize / orbit.n, 0
+                        ], 3));
+                    } else if (axis === 'y') {
+                        // green
+                        tickGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                            0, tickPosition, 0,
+                            -2 * tickSize / orbit.n, tickPosition, 0
+                        ], 3));
+                    } else {
+                        // blue
+                        tickGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                            2 * tickSize / orbit.n, 0, tickPosition,
+                            0, 0, tickPosition
+                        ], 3));
+                    }
+
+                    const tickMaterial = new THREE.LineBasicMaterial({
+                        color: axisColors[axis]
+                    });
+                    const tick = new THREE.Line(tickGeometry, tickMaterial);
+                    axesHelper.add(tick);
+                }
+            });
+
+            if (showAxes) {
+                scene.add(axesHelper);
+            }
+        }
+
+        const toggleButton = document.getElementById('toggleAxesBtn');
+        // 可以添加一个切换函数
+        function toggleAxes() {
+            showAxes = !showAxes;
+            if (showAxes) {
+                scene.add(axesHelper);
+                toggleButton.textContent = "关闭坐标轴";
+            } else {
+                scene.remove(axesHelper);
+                toggleButton.textContent = "显示坐标轴";
+            }
+        }
+        // 监听切换坐标轴
+        toggleButton.addEventListener('click', toggleAxes);
+
+        // 初始化轨道选择器下拉框
+        function initOrbitSelector() {
+            const selector = document.getElementById('orbitSelector');
+            selector.innerHTML = ''; // 清空现有选项
+
+            orbits.forEach((orbit, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = orbit.name;
+                selector.appendChild(option);
+            });
+        }
+
+        // 调用初始化方法
+        initOrbitSelector();
+
+        // 在初始化场景后添加轨道控制器 鼠标拖曳
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // 添加阻尼效果使旋转更平滑
+        controls.dampingFactor = 0.05;
+
+        // 初始化轨道
+        let currentPoints = createPreciseOrbitPoints(orbit.n, orbit.l, orbit.m);
+        scene.add(currentPoints);
+
+        camera.position.z = orbit.n * 5 + 10;
+
+        // 更新信息显示
+        const infoElement = document.getElementById('info');
+
+        const orbitSelector = document.getElementById('orbitSelector');
+        orbitSelector.addEventListener('change', () => {
+            currentOrbit = parseInt(orbitSelector.value);
+            orbit = orbits[currentOrbit];
+
+            // 更新量子数选择器的值
+            document.getElementById('nSelector').value = orbit.n - 1;
+
+            const lSelector = document.getElementById('lSelector')
+            lSelector.innerHTML = '';
+            for (let l = 0; l < orbit.n; l++) {
+                const option = document.createElement('option');
+                option.value = l;
+                option.textContent = `l=${l}`;
+                lSelector.appendChild(option);
+            }
+            document.getElementById('lSelector').value = orbit.l;
+
+            // 更新m选择器选项
+            updateMSelector();
+            document.getElementById('mSelector').value = orbit.m;
+            simulate();
+        });
+        orbitSelector.dispatchEvent(new Event('change')); // 初始化时触发一次
+
+        function simulate() {
+            console.log("-------- run simulation");
+            scene.remove(currentPoints);
+
+            orbit.name = getOrbitName(orbit.n, orbit.l, orbit.m);   //更新轨道名称
+            currentPoints = createPreciseOrbitPoints(orbit.n, orbit.l, orbit.m);
+            scene.add(currentPoints);
+
+            lOption = null;
+            mOption = null;
+
+            camera.position.z = orbit.n * 5 + 10;
+            infoElement.textContent = `当前轨道: ${orbit.name} (n=${orbit.n}, l=${orbit.l}, m=${orbit.m}) 能级Eₙ =${getOrbitEnergy(orbit.n, orbit.l, orbit.m).toFixed(3)} eV`;
+        }
+
+        // 动画循环
+        // function animate() {
+        //     requestAnimationFrame(animate);
+        //     currentPoints.rotation.x += 0.005;
+        //     currentPoints.rotation.y += 0.005;
+        //     renderer.render(scene, camera);
+        // }
+        // animate();
+        // 修改动画循环函数
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // 需要更新控制器
+            renderer.render(scene, camera);
+        }
+        animate();
+
+
+        // 创建圆形纹理的函数
+        function createCircleTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const context = canvas.getContext('2d');
+            const center = 16;
+            const radius = 14;
+
+            // 清空画布为透明
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制圆形
+            context.beginPath();
+            context.arc(center, center, radius, 0, 2 * Math.PI);
+            context.fillStyle = 'white';
+            // context.fillStyle = 'rgba(255, 255, 255, 0.0)'; // 使用透明背景
+
+            context.fill();
+
+            // 创建纹理
+            const texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        // 精确计算
+        // 氢原子波函数计算
+        function hydrogenWaveFunction(n, l, m, r, theta, phi) {
+            // 玻尔半径 (a₀)
+            const a0 = 1;
+
+            // 径向部分 (拉盖尔多项式)
+            const rho = 2 * r / (n * a0);
+            const laguerre = associatedLaguerre(n - l - 1, 2 * l + 1, rho);
+            const radial = Math.sqrt((2 / (n * a0)) ** 3 * factorial(n - l - 1) /
+                (2 * n * factorial(n + l))) *
+                Math.exp(-rho / 2) * rho ** l * laguerre;
+
+            // 角向部分 (球谐函数)
+            const spherical = sphericalHarmonic(l, m, theta, phi);
+
+            return radial * spherical;
+        }
+        function hydrogenWaveFunctionTest(n, l, m, r, theta, phi) {
+            // 玻尔半径 (a₀)
+            const a0 = 1;
+
+            // 修正屏蔽效应计算
+            function calculateSigma(n, l) {
+                if (n <= 1) return 0;
+
+                let sigma = 0;
+                // 同层电子屏蔽 (n相同)
+                sigma += 0.35 * Math.max(0, n - l - 1); // 避免负值
+                // 内层电子屏蔽
+                if (n > 1) sigma += 0.85 * Math.min(l, 1); // n-1层
+                return Math.min(sigma, 0.9); // 限制最大屏蔽
+            }
+
+            const sigma = calculateSigma(n, l);
+            const effectiveZ = Math.max(1 - sigma, 0.1); // 有效核电荷最小为0.1
+
+            // 调整径向参数，避免过小半径
+            const rho = 2 * effectiveZ * Math.max(r, 0.1) / (n * a0); // 最小半径限制
+
+            // 径向部分计算
+            const laguerre = associatedLaguerre(n - l - 1, 2 * l + 1, rho);
+            const radial = Math.sqrt((2 * effectiveZ / (n * a0)) ** 3 * factorial(n - l - 1) /
+                (2 * n * factorial(n + l))) *
+                Math.exp(-rho / 2) * Math.pow(rho, l) * laguerre;
+
+            // 角向部分
+            const spherical = sphericalHarmonic(l, m, theta, phi);
+
+            return radial * spherical;
+        }
+
+        // 添加二项式系数计算函数
+        function binomial(n, k) {
+            if (k < 0 || k > n) return 0;
+            if (k === 0 || k === n) return 1;
+
+            let result = 1;
+            for (let i = 1; i <= k; i++) {
+                result *= (n - k + i) / i;
+            }
+            return Math.round(result);
+        }
+
+        // 添加阶乘计算函数
+        function factorial(n) {
+            if (n < 0) return NaN;
+            if (n === 0 || n === 1) return 1;
+
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        // 添加关联勒让德多项式计算函数
+        function associatedLegendre(l, m, x) {
+            // 实现关联勒让德多项式计算
+            if (m < 0 || m > l) return 0;
+
+            // 使用递归关系计算
+            let pmm = 1;
+            if (m > 0) {
+                const somx2 = Math.sqrt((1 - x) * (1 + x));
+                pmm = (-1) ** m * factorial(2 * m - 1) * Math.pow(somx2, m);
+            }
+
+            if (l === m) return pmm;
+
+            let pmmp1 = x * (2 * m + 1) * pmm;
+            if (l === m + 1) return pmmp1;
+
+            let pll = 0;
+            for (let ll = m + 2; ll <= l; ll++) {
+                pll = ((2 * ll - 1) * x * pmmp1 - (ll + m - 1) * pmm) / (ll - m);
+                pmm = pmmp1;
+                pmmp1 = pll;
+            }
+
+            return pll;
+        }
+
+        // 辅助函数：关联拉盖尔多项式
+        function associatedLaguerre(k, alpha, x) {
+            // 实现拉盖尔多项式计算
+            let sum = 0;
+            for (let i = 0; i <= k; i++) {
+                sum += ((-1) ** i) * binomial(k + alpha, k - i) * (x ** i) / factorial(i);
+            }
+            return sum;
+        }
+
+        // 辅助函数：球谐函数
+        function sphericalHarmonic(l, m, theta, phi) {
+            // 实现球谐函数计算
+            const prefactor = Math.sqrt((2 * l + 1) * factorial(l - Math.abs(m)) /
+                (4 * Math.PI * factorial(l + Math.abs(m))));
+            const legendre = associatedLegendre(l, Math.abs(m), Math.cos(theta));
+
+            if (m > 0) {
+                return prefactor * legendre * Math.cos(m * phi) * Math.sqrt(2);
+            } else if (m < 0) {
+                return prefactor * legendre * Math.sin(-m * phi) * Math.sqrt(2);
+            } else {
+                return prefactor * legendre;
+            }
+        }
+
+        // 创建精确的电子云点
+        function createPreciseOrbitPoints(n, l, m) {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            const pointsCount = 10000;
+
+            let minR = 999;
+            let maxR = 0;
+
+            for (let i = 0; i < pointsCount; i++) {
+                // 使用拒绝采样法根据概率密度分布生成点
+                let r, theta, phi, psiSquared;
+                do {
+                    r = 20 * Math.random();  // 最大半径限制
+                    theta = Math.PI * Math.random();
+                    phi = 2 * Math.PI * Math.random();
+
+                    const psi = hydrogenWaveFunction(n, l, m, r, theta, phi);
+                    psiSquared = Math.abs(psi) ** 2;
+                } while (Math.random() > psiSquared * r * r * Math.sin(theta) * 100); // 调整100这个因子以优化采样效率
+
+                // 转换为笛卡尔坐标
+                const x = r * Math.sin(theta) * Math.cos(phi);
+                const y = r * Math.sin(theta) * Math.sin(phi);
+                const z = r * Math.cos(theta);
+
+                vertices.push(x, y, z);
+
+                // 根据概率密度设置颜色 0.12 + -0.12
+                const hue = 0.3 + 1.2 * Math.exp(-0.15 * r);  //Math.sqrt 随半径变化的色调    0.6 * (1 - Math.exp(-0.1 * r))         1.2 * (1 - Math.exp(-0.1 * r));
+                const saturation = 0.4;                                            // 0.8                                    0.4  good one
+                const lightness = 0.5 + 0.3 * psiSquared;
+                colors.push(hue, saturation, lightness);
+
+                if (r < minR) minR = r;
+                if (r > maxR) maxR = r;
+            }
+
+            console.log("min: " + minR);
+            console.log("max: " + maxR);
+
+            //console.log("  number of electrons: " + getNumberOfElectrons(n, l, m));
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,      // lightness + 0.15
+                blending: THREE.AdditiveBlending,
+                map: createCircleTexture(),
+                alphaTest: 0.1 // 添加alphaTest避免边缘锯齿
+            });
+
+            // 将点云传入坐标轴控制方法
+            const points = geometry.attributes.position.array;
+            let scale = 2 / 3;
+            if (n === 1) scale = 4 / 5
+            createAxesHelper(points, scale);
+            return new THREE.Points(geometry, material);
+        }
+
+        // 添加轨道命名函数
+        function getOrbitName(n, l, m) {
+            const lNames = ['s', 'p', 'd', 'f', 'g', 'h', 'i'];
+            let name = n + lNames[l];
+
+            if (l > 0) {
+                // 添加轨道方向标识
+                if (Math.abs(m) === 1) {
+                    name += m > 0 ? '_x' : '_y';
+                } else if (Math.abs(m) === 0 && l >= 2) {
+                    name += '_z²';
+                } else if (Math.abs(m) === 2) {
+                    name += m > 0 ? '_x²-y²' : '_xy';
+                } else if (Math.abs(m) === 3) {
+                    name += m > 0 ? '_z³' : '_z²y';
+                } else if (Math.abs(m) === 4) {
+                    name += m > 0 ? '_z⁴' : '_z³y';
+                } else if (Math.abs(m) === 5) {
+                    name += m > 0 ? '_z⁵' : '_z⁴y';
+                } else if (Math.abs(m) === 6) {
+                    name += m > 0 ? '_z⁶' : '_z⁵y';
+                }
+            }
+
+            return name;
+        }
+
+        // 电子能量计算
+        function getOrbitEnergy(n, l, m) {
+            const energy = -13.6 / (n ** 2); // 电子能量公式
+            return energy;
+        }
+
+        // 扩展版本：可以计算不同级别容纳的电子数
+        function getNumberOfElectrons(n, l, m) {
+            l = undefined;
+            m = undefined;
+            if (m !== undefined && l !== undefined) {
+                // 指定轨道：2个电子
+                return 2;
+            } else if (l !== undefined) {
+                // 指定亚层：2*(2l+1)个电子
+                return 2 * (2 * l + 1);
+            } else {
+                // 指定主能级：2*n²个电子
+                return 2 * n * n;
+            }
+        }
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+
+</html>
