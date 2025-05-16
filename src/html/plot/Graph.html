@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <canvas id="graph" width="1200" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('graph');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // 绘制灰色背景
+    ctx.fillStyle = '#d1d1d1';
+    ctx.fillRect(0, 0, width, height);
+
+    // 坐标系参数
+    const xMin = -15;
+    const xMax = 15;
+    const yMin = -10;//-10;
+    const yMax = 20;//30;
+    const scaleX = width / (xMax - xMin);   // 每单位x对应像素数
+    const scaleY = height / (yMax - yMin); // 每单位y对应像素数
+    const originX = -xMin * scaleX;       // 坐标原点x位置
+    const originY = yMax * scaleY;         // 坐标原点y位置
+
+    // 绘制浅灰色网格
+    ctx.strokeStyle = '#a0a0a0';
+    ctx.lineWidth = 0.5;
+    // 垂直网格线（x轴）
+    for (let x = xMin; x <= xMax; x++) {
+      const px = originX + x * scaleX;
+      ctx.beginPath();
+      ctx.moveTo(px, 0);
+      ctx.lineTo(px, height);
+      ctx.stroke();
+    }
+    // 水平网格线（y轴）
+    for (let y = yMin; y <= yMax; y++) {
+      const py = originY - y * scaleY;
+      ctx.beginPath();
+      ctx.moveTo(0, py);
+      ctx.lineTo(width, py);
+      ctx.stroke();
+    }
+
+    // 绘制坐标轴
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    // X轴
+    ctx.beginPath();
+    ctx.moveTo(0, originY);
+    ctx.lineTo(width, originY);
+    ctx.stroke();
+    // Y轴
+    ctx.beginPath();
+    ctx.moveTo(originX, 0);
+    ctx.lineTo(originX, height);
+    ctx.stroke();
+
+    // 绘制函数图像
+    ctx.beginPath();
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 2;
+    //  y = 2x² - 9x + 3 - 1/x
+    let functionX = 1;
+    //  y = cos(x)/x²
+
+    // 函数定义集合
+    const functions = [
+      {
+        name: "√(1 - x²/4)",   // 质量与速度
+        f: x => Math.sqrt(1 - (x * x) / 4),
+        df: x => -x / (4 * Math.sqrt(1 - (x * x) / 4)),// 添加导数公式
+        domain: x => Math.abs(x) < 4  // 添加定义域限制
+      },
+      {
+        name: "1/√(1 - x²/4)",   // 质量与速度
+        f: x => 1/Math.sqrt(1 - (x * x) / 4),
+        df: x => x / (4 * Math.pow(1 - (x * x) / 4, 1.5)), // 添加导数公式
+        domain: x => Math.abs(x) < 4  // 添加定义域限制
+      },
+      {
+        name: "√(1/x² - 1/c²)",   // 波长与速度
+        f: x => Math.sqrt(1 / (x * x) - 1 / 16),
+        df: x => -1 / (x ** 3 * Math.sqrt(1 / (x ** 2) - 1 / 16)),  // 添加导数公式
+        domain: x => Math.abs(x) > 0.00000000001 && Math.abs(x) <= 4  // 添加定义域限制
+      },
+      // -2 * x / (x * x * x * Math.sqrt(1/(x * x) - 1/100))
+      {
+        name: "2x² - 9x + 3 - 1/x",
+        f: x => 2 * x * x - 9 * x + 3 - 1 / x,
+        df: x => 4 * x - 9 + 1 / (x * x)
+      },
+      {
+        name: "cos(x)/x",
+        f: x => Math.cos(x) / x,
+        df: x => (-Math.sin(x) * x - Math.cos(x)) / (x * x)
+      }
+    ];
+
+    // 当前选中的函数索引
+    let functionIndex = functionX - 1; // 0或1
+
+    // for (let x = xMin; x <= xMax; x += 0.1) {
+    //   const y = functions[functionIndex].f(x);
+    //   const px = originX + x * scaleX;
+    //   const py = originY - y * scaleY;
+    //   ctx.lineTo(px, py);
+    // }
+    // ctx.stroke();
+    // 修改函数绘制逻辑（约第70行）
+    ctx.beginPath();
+    let prevValid = false;
+
+    for (let x = xMin; x <= xMax; x += 0.1) {
+      const isValid = functions[functionIndex].domain ?
+        functions[functionIndex].domain(x) : true;
+
+      if (isValid) {
+        try {
+          const y = functions[functionIndex].f(x);
+          const px = originX + x * scaleX;
+          const py = originY - y * scaleY;
+
+          if (!prevValid) {
+            ctx.moveTo(px, py);
+          } else {
+            ctx.lineTo(px, py);
+          }
+          prevValid = true;
+        } catch {
+          prevValid = false;
+        }
+      } else {
+        prevValid = false;
+      }
+    }
+    ctx.stroke();
+
+    // ----- 查找导数为零的点（极值点）-----
+    function findZeroDerivativePoints(f, df, xMin, xMax, step = 0.01) {
+      const points = [];
+      let prevX = xMin;
+      let prevDf = df(prevX);
+
+      for (let x = xMin + step; x <= xMax; x += step) {
+        const currDf = df(x);
+        // 检测符号变化
+        if (prevDf * currDf <= 0) {
+          // 使用线性插值精确根位置
+          const theta = prevDf / (prevDf - currDf);
+          const rootX = prevX + theta * step;
+          points.push({ x: rootX, y: f(rootX) });
+        }
+        prevX = x;
+        prevDf = currDf;
+      }
+      return points.filter(p =>
+        !isNaN(p.y) && isFinite(p.y) &&
+        p.y >= yMin && p.y <= yMax
+      );
+    }
+
+    // 在绘制函数后添加以下代码：
+    // 绘制导数零点（极值点）
+    const currentFunc = functions[functionIndex];
+    const extrema = findZeroDerivativePoints(
+      currentFunc.f,
+      currentFunc.df,
+      xMin,
+      xMax
+    );
+
+    ctx.fillStyle = 'red';
+    extrema.forEach(p => {
+      const px = originX + p.x * scaleX;
+      const py = originY - p.y * scaleY;
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+
+
+  </script>
+
+  <style>
+    canvas {
+      background: #d1d1d1;
+    }
+  </style>
+</body>
+
+</html>
