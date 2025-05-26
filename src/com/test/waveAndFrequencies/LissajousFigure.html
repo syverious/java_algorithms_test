@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>莉萨如图形绘制 - Lissajous Figure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <h1>李萨如图形模拟</h1>
+    
+    <div class="controls">
+        <label for="freqX">X轴频率:</label>
+        <input type="range" id="freqX" min="1" max="10" value="3" step="1">
+        <span id="freqXValue">3</span>
+        
+        <br>
+        
+        <label for="freqY">Y轴频率:</label>
+        <input type="range" id="freqY" min="1" max="10" value="2" step="1">
+        <span id="freqYValue">2</span>
+        
+        <br>
+        
+        <label for="phase">相位差(φ):</label>
+        <input type="range" id="phase" min="0" max="360" value="90" step="1">
+        <span id="phaseValue">90°</span>
+    </div>
+    
+    <canvas id="lissajousCanvas" width="600" height="400"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('lissajousCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 150;
+        
+        // 获取控制元素
+        const freqXSlider = document.getElementById('freqX');
+        const freqYSlider = document.getElementById('freqY');
+        const phaseSlider = document.getElementById('phase');
+        const freqXValue = document.getElementById('freqXValue');
+        const freqYValue = document.getElementById('freqYValue');
+        const phaseValue = document.getElementById('phaseValue');
+        
+        // 初始化参数
+        let freqX = parseInt(freqXSlider.value);
+        let freqY = parseInt(freqYSlider.value);
+        let phase = parseInt(phaseSlider.value);
+        let time = 0;
+        
+        // 更新显示值
+        function updateDisplayValues() {
+            freqXValue.textContent = freqX;
+            freqYValue.textContent = freqY;
+            phaseValue.textContent = phase + '°';
+        }
+        
+        // 绘制李萨如图形
+        function drawLissajous() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制坐标轴
+            ctx.beginPath();
+            ctx.strokeStyle = '#ccc';
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+            
+            // 绘制李萨如图形
+            ctx.beginPath();
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            
+            const phaseRad = phase * Math.PI / 180;
+            const steps = 500;
+            
+            for (let i = 0; i <= steps; i++) {
+                const t = (i / steps) * 2 * Math.PI;
+                const x = centerX + radius * Math.cos(freqX * t + phaseRad);
+                const y = centerY + radius * Math.cos(freqY * t);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // 实时绘制移动的点
+            const pointX = centerX + radius * Math.cos(freqX * time + phaseRad);
+            const pointY = centerY + radius * Math.cos(freqY * time);
+            
+            ctx.beginPath();
+            ctx.arc(pointX, pointY, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            
+            time += 0.01;
+            if (time > 2 * Math.PI) {
+                time = 0;
+            }
+            
+            requestAnimationFrame(drawLissajous);
+        }
+        
+        // 添加事件监听器
+        freqXSlider.addEventListener('input', function() {
+            freqX = parseInt(this.value);
+            updateDisplayValues();
+        });
+        
+        freqYSlider.addEventListener('input', function() {
+            freqY = parseInt(this.value);
+            updateDisplayValues();
+        });
+        
+        phaseSlider.addEventListener('input', function() {
+            phase = parseInt(this.value);
+            updateDisplayValues();
+        });
+        
+        // 初始化并开始动画
+        updateDisplayValues();
+        drawLissajous();
+    </script>
+</body>
+</html>
