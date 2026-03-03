@@ -8,6 +8,12 @@ import static com.test.defination.Constant.*;
  */
 public class SpinMomentum {
 
+    private static double r = 5.29177 * Math.pow(10, -11);
+
+    private static double λe = 2.42633 * Math.pow(10, -12);
+
+    private static double λp = 1.32142 * Math.pow(10, -15);
+
     /*
      * |S| = (s(s+1))^0.5ℏ = (3/4)^0.5ℏ
      */
@@ -26,7 +32,7 @@ public class SpinMomentum {
         return ℏ * 2/5;
     }
 
-    // L = mR²ω
+    // L = mR²ω    莫比乌斯环展开 2R 0.5ω -> 2mR²ω
     public static double classicToroid(){
         return ℏ;
     }
@@ -44,7 +50,18 @@ public class SpinMomentum {
 
         System.out.println("me: " + magneticMoment(0.5));
         System.out.println("me_: " + magneticMomentClassic());
-        finalTest();
+      //finalTest();
+
+        System.out.println("---------------");
+        //double a = 2 * effectiveCharge(λe)/π;
+        //double b = EfieldStrength(λe);
+        double a = 2 * effectiveCharge(λe)/π;
+        double b = EfieldStrength(λe);    // /(2*π)
+        System.out.println("photon toroid: " + a);   // average of abs
+        System.out.println("point charge: " + b);
+        System.out.println(a/b);
+        //System.out.println(λe/λp);    // 1836.1535318
+        //System.out.println(r/λe);    // 21.80977
     }
 
     // μ = g(e/2m)S      S = (3/4)^0.5ℏ
@@ -82,6 +99,7 @@ public class SpinMomentum {
           电子质量   m = ℏ/cλ
               磁矩  μ = 0.5 * qcλ
             角动量  S = 1/2 * mR²ω = 0.5 * ℏ     disk shape?    true vacuum
+        莫比乌斯环逆展开 0.5   ?
 
      */
 
