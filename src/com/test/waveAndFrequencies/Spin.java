@@ -27,7 +27,7 @@ public class Spin {
 
     // 磁矩计算
     // μ = 0.5 * qvr
-    // 2πr = 2λ        2.4263301321770935 *10^-12    // Lp = 1.6 * 10^-35
+    // 2πr = 2λ        2.4263301321770935 *10^-12    // λₚ = 1.3214207084405843 *10^-15
     // hypothesis: v = c
     public static double magneticMoment(double m){   // 是否是复合粒子
         double e = 1.602176634 * Math.pow(10, -19);   //-C

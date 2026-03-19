@@ -2,6 +2,7 @@ package com.test.defination;
 
 import static com.test.defination.Constant.*;
 
+// Deprecated, ignore this file
 public class DimensionAnalysis {
 
 

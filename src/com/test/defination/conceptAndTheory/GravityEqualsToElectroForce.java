@@ -5,7 +5,7 @@ import com.test.waveAndFrequencies.α;
 import static com.test.defination.Constant.*;
 
 /**
- * considering the scenario of annihilation of an electron and a anti-electron
+ * considering the scenario of annihilation of an electron and a positron
  * Fₚ  =  Fₑ
  */
 public class GravityEqualsToElectroForce {
@@ -22,7 +22,8 @@ public class GravityEqualsToElectroForce {
     /*
      * q²/4πε₀ = ℏ/√ε₀μ₀
      * q² = n² 4π ℏ √ε₀/√μ₀         Fₑ : r -> nlₚ   n = √α ~ 0.00855
-     */
+     */                                             /** 耦合强度 */
+    // α 直接决定了电磁相互作用的概率幅。例如，一个电子发射一个光子的概率振幅正比于 √α 。
     public static void checkElectronCharge(){
         double m = 9.1093837015 * Math.pow(10, -31);
         double l = h/(c*m*2*π);
@@ -34,11 +35,11 @@ public class GravityEqualsToElectroForce {
         System.out.println("q: " + e);
         //System.out.println("q: " + e*0.91);
         System.out.println(": " + Math.sqrt(4*π*ℏ*Math.sqrt(ε0/μ0)));
-        System.out.println("adjusted: " + Math.sqrt(Math.pow(0.0855,2)*4*π*ℏ*Math.sqrt(ε0/μ0)));    // n ~ 0.0855
+        System.out.println("theoretical result: " + Math.sqrt(Math.pow(0.0855,2)*4*π*ℏ*Math.sqrt(ε0/μ0)));    // n ~ 0.0855
         //System.out.println("calculated: " + (l/lp) * 4*π*ℏ*Math.sqrt(ε0/μ0));
         //System.out.println("calculated: " + ((l*l)/(lp*lp)) * 4*π*ℏ*Math.sqrt(ε0/μ0));    // (l*l/lp*lp) *
         //System.out.println((l*l/lp*lp));
-        System.out.println("classic: " + Math.sqrt(α.value()*4*π*ℏ*Math.sqrt(ε0/μ0)));
+        System.out.println("classic result: " + Math.sqrt(α.value()*4*π*ℏ*Math.sqrt(ε0/μ0)));
     }
 
     public static void main(String[] args) {
@@ -48,7 +49,7 @@ public class GravityEqualsToElectroForce {
     /* 正负电子湮灭 情况下
      * 束缚在康普顿波长内的光子的约束力达到极限-普朗克力 Fₚ = ℏ/ lₚ² √ε₀μ₀      Eₚ = ℏ/ lₚ √ε₀μ₀
      * 正电场光子与负电场光子间吸引力  Fₑ = q²/4πε₀n²lₚ²
-     * 当二者相等得到  q²/4πε₀n²lₚ² = ℏ/ lₚ² √ε₀μ₀
+     * 当二者相等得到  q²/4πε₀n²lₚ² = ℏ/ lₚ² √ε₀μ₀         (n² ~ 精细结构常数α)
      * 可自然而然得出 α 与 lₚ 的关系，即正负电子距离为 √αlₚ 时发生湮灭，光子不再被束缚。 -- Lofting Young
      */
 

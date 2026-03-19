@@ -65,18 +65,19 @@ public class SpinMomentum {
     }
 
     // μ = g(e/2m)S      S = (3/4)^0.5ℏ
-    public static double magneticMoment(double s){
-        double λ = ℏ/(2 * c * 9.1093837015 * Math.pow(10, -31));
+    public static double magneticMoment(double m, double s){
+        double λ = ℏ/(c * m);
         //return (2 * e / (ℏ/2 * c*λ) ) * Math.pow(s * (s + 1), 0.5) * ℏ;
         //return (2 * e /  (2 * 9.1093837015 * Math.pow(10, -31))) * Math.pow(s * (s + 1), 0.5) * ℏ;    NOT right !
-        return (2 * e /  (2 * 9.1093837015 * Math.pow(10, -31))) * 0.5 * ℏ;         // checked
+        //return (2 * e /  (2 * m)) * 0.5 * ℏ;         // checked
+        return (2 * e /  (2 *(ℏ/(c*λ)))) * 0.5 * ℏ;      // checked
     }
 
     // μ = 0.5 * qvr
     // 2πr = 2λ        2.4263301321770935 *10^-12    // Lp = 1.6 * 10^-35
     // hypothesis: v = c
-    public static double magneticMomentClassic(){   // 是否是复合粒子
-        double m = 9.1093837015 * Math.pow(10, -31);
+    public static double magneticMomentClassic(double m){   // 是否是复合粒子 质子/中子模型 需要乘复杂的常数
+
         double e = 1.602176634 * Math.pow(10, -19);   //-C
         double l = h/(c*m*2*π);
         double u = 0.5 * e * c * l;

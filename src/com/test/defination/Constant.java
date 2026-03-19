@@ -1,5 +1,6 @@
 package com.test.defination;
 
+// 一些常用的字符
 public class Constant {
 
     public static final double π = Math.PI;
@@ -19,7 +20,7 @@ public class Constant {
     public static final double μ = Math.pow(10, -7);  // H/m
 
     // 静电力常量 库伦常数 k
-    public static final double k = c * c * Math.pow(10, -7);  // H/m
+    public static final double k = c * c * Math.pow(10, -7);  // N·m²/C²
 
     // ε0 = 1/μ0c²
 
