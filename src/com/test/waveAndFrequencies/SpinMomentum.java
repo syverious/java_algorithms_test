@@ -44,22 +44,28 @@ public class SpinMomentum {
 
 
     public static void main(String[] args) {
+        double me = 9.1093837015 * Math.pow(10, -31);
+        double mp = 1.6726219 * Math.pow(10, -27);
+        double mn = 1.6748 * Math.pow(10, -27);
+
         System.out.println("q: " + quantum(0.5));
       //System.out.println("cS: " + classicSphere());
         System.out.println("cD: " + classicDisk());    // checked
 
-        System.out.println("me: " + magneticMoment(0.5));
-        System.out.println("me_: " + magneticMomentClassic());
+        System.out.println("磁矩: " + magneticMoment(me,0.5));
+        System.out.println("磁矩 经典物理: " + magneticMomentClassic(me));   // 9.274010078362164E-24
       //finalTest();
 
         System.out.println("---------------");
         //double a = 2 * effectiveCharge(λe)/π;
         //double b = EfieldStrength(λe);
+        /*
         double a = 2 * effectiveCharge(λe)/π;
         double b = EfieldStrength(λe);    // /(2*π)
         System.out.println("photon toroid: " + a);   // average of abs
         System.out.println("point charge: " + b);
         System.out.println(a/b);
+         */
         //System.out.println(λe/λp);    // 1836.1535318
         //System.out.println(r/λe);    // 21.80977
     }

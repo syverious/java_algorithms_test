@@ -21,7 +21,7 @@ public class GravityEqualsToElectroForce {
     // q²/4πε₀n²lₚ² = ℏ/ lₚ² √ε₀μ₀
     /*
      * q²/4πε₀ = ℏ/√ε₀μ₀
-     * q² = n² 4π ℏ √ε₀/√μ₀         Fₑ : r -> nlₚ   n = √α ~ 0.00855
+     * q² = n² 4π ℏ √ε₀/√μ₀         Fₑ : r -> nlₚ   n = √α ~ 0.0855
      */                                             /** 耦合强度 */
     // α 直接决定了电磁相互作用的概率幅。例如，一个电子发射一个光子的概率振幅正比于 √α 。
     public static void checkElectronCharge(){
@@ -43,7 +43,9 @@ public class GravityEqualsToElectroForce {
     }
 
     public static void main(String[] args) {
-        checkElectronCharge();
+        //checkElectronCharge();
+        checkValue();
+        System.out.println(alpha());
     }
 
     /* 正负电子湮灭 情况下
@@ -61,6 +63,48 @@ public class GravityEqualsToElectroForce {
        ℏ / n₁n₂n² lₚ² √ε₀μ₀
      */
 
+    public static double discreteGravity(int x){
+        // ℏ/ x² lₚ² √ε₀μ₀
+        double F = ℏ*c/(x*x);    //*lp*lp
+        return F;
+    }
+
+    public static double discreteElectricForce(double x){
+        double n = 0.0854357;    //  the two functions overlap when static electric force is multiplied by n²  强度系数比
+        // q²/4πε₀x²lₚ²
+        double F = e*e/(n*n*4*π*ε0*x*x);    // *lp*lp
+        return F;
+    }
+
+    public static double alpha(){
+        //double α = e*e/(ℏ*c *4*π*ε0);
+        double α = e*e*Math.sqrt(μ0)/(ℏ*4*π*Math.sqrt(ε0));
+        return α;
+    }
+    //表示为  e = √4πℏε₀cα = √(4πℏ√(nε₀/μ₀))   n↑   α↑   e↑  有效电荷增大
+    //施格温 Ee = mₑ²c³/eℏ
+
+    public static void checkValue(){
+        int[] list = {1, 20, 40, 60, 80, 100, 120, 130, 137, 144};
+        System.out.println();
+        String space = "     ";
+        String align = "";
+        for(int n = 0; n < list.length; n++){
+            align+=space;
+            System.out.println(list[n]);
+            System.out.println(align + discreteGravity(list[n]));
+            System.out.println(align + discreteElectricForce(list[n]));
+        }
+        // System.out.println("0.0854357     " + discreteElectricForce(0.0854357));
+
+    }
+    /* 施格温 Ee = mₑ²c³/eℏ
+          Ee = c³ ℏ²/c²λₑ²eℏ
+          Ee = c ℏ/λₑ²e
+             = √cℏ/λₑ²√4πε₀α
+             = √ε₀ℏ/λₑ²√4πμ₀α
+     */
+
     // mass of a blackhole  m = ℏ/cλ  ->  ℏ/cr    4ℏr
 
     /* Mₕ = c²rₛ/2G   G = lₚ²/ℏε₀μ₀ √ε₀μ₀
@@ -71,6 +115,23 @@ public class GravityEqualsToElectroForce {
        m = ℏ/cλ  -> ℏ √ε₀μ₀ / λ
                     ℏ √ε₀μ₀ / nlₚ   (n>=1)
      */
+
+    // 计算量子化引力的另一种方式
+    /* Fₚ = Eₚ/lₚ     E = mc²   m = ℏ/cλ = ℏ/cnlₚ
+                     E = ℏc/nlₚ
+       Fₚ = ℏc/nlₚ²   -康普顿波长为 nlₚ 的物体对周围粒子的吸引
+
+       Fₚ = ma   a = ℏc/n₁lₚ²m    m = ℏ/cn₂lₚ
+        a = c²n₂/n₁lₚ   (n₂, n₁>=1,  n₂<=2n₁)  加速度范围  0 - c²/lₚ
+
+       Fₚ = Gmₚ²/lₚ² = G ℏ²/c²lₚ⁴
+        a = Gm/lₚ²  = ℏlₚ²/ℏcnlₚ lₚ²
+          = 1/cnlₚ
+     */
+
+     // nλ + nλ = 0.5nλ
+     // 中子星坍缩 产生巨大引力波
+
 
 
 }

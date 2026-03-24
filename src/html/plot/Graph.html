@@ -50,9 +50,15 @@
         domain: x => Math.abs(x) < 3.9999999999  // 添加定义域限制
       },
       {
-        name: "相对论动能修正?:  y = √(x^4 + 1-x^2)",    // E² = m₀²v⁴ + m₀²c²(c²-v²),  c = 4
-        f: x => Math.sqrt((Math.pow(x,4) + 16*(16-Math.pow(x,2)))),
+        name: "相对论动能修正(废弃):  y = √(x^4 + 1-x^2)",    // E² = m₀²v⁴ + m₀²c²(c²-v²),  c = 4
+        f: x => Math.sqrt((Math.pow(x,4) + 16*(16-Math.pow(x,2)))) - 4,
         df: x => (0.5 * (Math.pow(x,4) + (((x*x * -1) + 16) * 16))^-0.5) * ((4 * x * x * x) + ((((2.0 * x) * -1) * 16)))
+      },
+      {
+        name: "相对论动能:  y = c² * c/√(c^2 - x^2)",    // E = γm₀c²,   c = 4
+        f: x =>  4 * Math.sqrt((Math.pow(4,2) + Math.pow(x,2))) - 4,
+        df: x => Math.sqrt((Math.pow(4,2) + Math.pow(x,2))) - 4,
+        domain: x => Math.abs(x) < 3.99   // 基本粒子能量上限为 E = ℏc/lₚ , 反解出速度上限(仍然非常接近光速)
       },
       {
         name: "波长-速度test: √(1/x² - 1/c²)",   // 波长与速度 c = 4
