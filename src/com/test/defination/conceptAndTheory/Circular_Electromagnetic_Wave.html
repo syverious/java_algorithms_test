@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>束缚态圆偏振电磁波驻波圆周运动: 复合极坐标函数 - 三维曲线</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --panel-bg: rgba(22, 27, 34, 0.92);
+            --text: #e6edf3;
+            --text-dim: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+            --x-color: #ff4d4d;
+            --y-color: #4dff4d;
+            --z-color: #4da6ff;
+            --curve-color: #ffaa44;
+            --point-color: #ffff00;
+            --unit-circle-color: #7799cc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #container canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .css2d-renderer {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            pointer-events: none !important;
+            z-index: 2;
+        }
+        .css2d-renderer div {
+            pointer-events: none !important;
+            user-select: none;
+        }
+
+        .axis-label {
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+            letter-spacing: 1px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+        }
+        .axis-label-x { color: var(--x-color); }
+        .axis-label-y { color: var(--y-color); }
+        .axis-label-z { color: var(--z-color); }
+        .axis-label-o { color: #fff; font-size: 14px; }
+
+        #ui-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(800px, 92vw);
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px 24px;
+            z-index: 10;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #58a6ff, #9851cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .function-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .function-selector select {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+            transition: all 0.2s;
+            min-width: 240px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        .function-selector select:hover {
+            border-color: var(--accent);
+            background: rgba(88, 166, 255, 0.1);
+        }
+        .function-selector select option {
+            background: #1a2029;
+            color: var(--text);
+        }
+
+        .coord-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .coord-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+        }
+        .coord-item .label {
+            color: var(--text-dim);
+            font-weight: 500;
+            margin-right: 6px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .coord-item .value {
+            font-weight: 700;
+            color: var(--text);
+        }
+        .coord-item .value.x-val { color: var(--x-color); }
+        .coord-item .value.y-val { color: var(--y-color); }
+        .coord-item .value.z-val { color: var(--z-color); }
+        .coord-item .value.theta-val { color: var(--curve-color); }
+        .coord-item .value.rad { color: #9851cc; }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .slider-row + .slider-row {
+            margin-top: 12px;
+        }
+
+        .slider-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .slider-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            min-width: 50px;
+        }
+        .slider-label span {
+            color: var(--curve-color);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .slider-container {
+            flex: 1;
+            min-width: 200px;
+        }
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #30363d, #4a5568);
+            outline: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--curve-color);
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(255, 170, 68, 0.5);
+            transition: all 0.15s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            border-color: #ffbb66;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--curve-color);
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(255, 170, 68, 0.5);
+        }
+
+        .theta-info {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        }
+        .theta-info kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 10px;
+            border: 1px solid var(--border);
+            margin: 0 2px;
+        }
+
+        @media (max-width: 640px) {
+            #ui-panel {
+                bottom: 12px;
+                padding: 16px 14px;
+                border-radius: 16px;
+            }
+            .coord-display {
+                gap: 6px;
+                font-size: 11px;
+            }
+            .coord-item {
+                padding: 4px 8px;
+            }
+            .slider-label {
+                font-size: 12px;
+                min-width: 40px;
+            }
+            .function-selector select {
+                min-width: 180px;
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+
+    <div id="ui-panel">
+        <div class="panel-title">电子/质子-束缚态圆偏振电磁波圆周运动: 复合极坐标函数 · θ ∈ [0, 4π)</div>
+        <div class="function-selector">
+            <select id="function-select" title="选择函数">
+                <!-- 选项由JS动态生成 -->
+            </select>
+        </div>
+        <div class="coord-display" id="coord-display">
+            <div class="coord-item"><span class="label">θ</span><span class="value theta-val" id="disp-theta">0.00 rad</span></div>
+            <div class="coord-item"><span class="label">x</span><span class="value x-val" id="disp-x">0.000</span></div>
+            <div class="coord-item"><span class="label">y</span><span class="value y-val" id="disp-y">0.000</span></div>
+            <div class="coord-item"><span class="label">z</span><span class="value z-val" id="disp-z">0.000</span></div>
+            <div class="coord-item"><span class="label">E</span><span class="value" id="disp-E">0.000</span></div>
+            <div class="coord-item"><span class="label">B</span><span class="value" id="disp-B">0.000</span></div>
+        </div>
+        <div class="slider-area">
+            <div class="slider-row">
+                <div class="slider-label">θ = <span id="slider-theta-val">0.00</span></div>
+                <div class="slider-container">
+                    <input type="range" id="slider-theta" min="0" max="12.566" step="0.005" value="0">
+                </div>
+            </div>
+            <div class="slider-row">
+                <div class="slider-label">缩放 = <span class="scale-val" id="slider-scale-val">0.50</span></div>
+                <div class="slider-container">
+                    <input type="range" id="slider-scale" min="0.25" max="2" step="0.01" value="1" class="scale-slider">
+                </div>
+            </div>
+        </div>
+        <div class="theta-info">
+            拖动滑块控制 θ &nbsp;|&nbsp; <kbd>鼠标左键</kbd> 旋转 &nbsp;|&nbsp; <kbd>滚轮</kbd> 缩放 &nbsp;|&nbsp; <kbd>右键</kbd> 平移
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+        // ========== 基础场景 ==========
+        const container = document.getElementById('container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0d1117);
+        scene.fog = new THREE.Fog(0x0d1117, 15, 40);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.up.set(0, 0, 1);
+        camera.position.set(4.5, 4.5, 3.5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        container.appendChild(renderer.domElement);
+
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.domElement.classList.add('css2d-renderer');
+        container.appendChild(labelRenderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0, 0);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.minDistance = 1.5;
+        controls.maxDistance = 15;
+        controls.zoomSpeed = 1.2;
+        controls.rotateSpeed = 0.8;
+        controls.panSpeed = 0.8;
+        controls.screenSpacePanning = true;
+        controls.update();
+
+        // ========== 光照 ==========
+        const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambient);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(6, 6, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        dirLight.shadow.camera.near = 0.5;
+        dirLight.shadow.camera.far = 30;
+        dirLight.shadow.camera.left = -8;
+        dirLight.shadow.camera.right = 8;
+        dirLight.shadow.camera.top = 8;
+        dirLight.shadow.camera.bottom = -8;
+        scene.add(dirLight);
+
+        const fillLight = new THREE.DirectionalLight(0x88aaff, 0.5);
+        fillLight.position.set(-3, -2, -2);
+        scene.add(fillLight);
+
+        // ========== 常量 ==========
+        const AXIS_LENGTH = 4.5;
+        const ARROW_HEAD_LENGTH = 0.25;
+        const ARROW_HEAD_RADIUS = 0.1;
+
+        // ========== 坐标轴 ==========
+        const xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0xff4d4d, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
+        const yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0x4dff4d, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
+        const zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0x4da6ff, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
+        scene.add(xAxis, yAxis, zAxis);
+
+        // 负半轴虚线
+        function createNegativeAxis(dir, color) {
+            const pts = [
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(-dir[0] * AXIS_LENGTH * 0.6, -dir[1] * AXIS_LENGTH * 0.6, -dir[2] * AXIS_LENGTH * 0.6)
+            ];
+            const geom = new THREE.BufferGeometry().setFromPoints(pts);
+            const mat = new THREE.LineDashedMaterial({ color, dashSize: 0.12, gapSize: 0.1, transparent: true, opacity: 0.35, depthWrite: false });
+            const line = new THREE.Line(geom, mat);
+            line.computeLineDistances();
+            return line;
+        }
+        scene.add(createNegativeAxis([1, 0, 0], 0xff4d4d));
+        scene.add(createNegativeAxis([0, 1, 0], 0x4dff4d));
+        scene.add(createNegativeAxis([0, 0, 1], 0x4da6ff));
+
+        // 坐标轴标签
+        function createLabel(text, pos, cls) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            div.className = 'axis-label ' + cls;
+            const label = new CSS2DObject(div);
+            label.position.copy(pos);
+            scene.add(label);
+            return label;
+        }
+        createLabel('X', new THREE.Vector3(AXIS_LENGTH + 0.35, 0, 0), 'axis-label-x');
+        createLabel('Y', new THREE.Vector3(0, AXIS_LENGTH + 0.35, 0), 'axis-label-y');
+        createLabel('Z', new THREE.Vector3(0, 0, AXIS_LENGTH + 0.35), 'axis-label-z');
+        createLabel('O', new THREE.Vector3(-0.2, -0.2, -0.2), 'axis-label-o');
+
+        // ========== 网格 ==========
+        const gridXY = new THREE.GridHelper(8, 16, 0x4da6ff, 0x2a3a4a);
+        gridXY.rotation.x = Math.PI / 2;
+        gridXY.material.transparent = true;
+        gridXY.material.opacity = 0.3;
+        gridXY.material.depthWrite = false;
+        scene.add(gridXY);
+
+        const gridXZ = new THREE.GridHelper(8, 16, 0x4dff4d, 0x2a4a3a);
+        gridXZ.material.transparent = true;
+        gridXZ.material.opacity = 0.25;
+        gridXZ.material.depthWrite = false;
+        scene.add(gridXZ);
+
+        // ========== XY平面单位圆（参考x1,y1） ==========
+        const unitCirclePoints = [];
+        const unitCircleSegments = 128;
+        for (let i = 0; i <= unitCircleSegments; i++) {
+            const t = (i / unitCircleSegments) * 2 * Math.PI;
+            unitCirclePoints.push(new THREE.Vector3(Math.cos(t), Math.sin(t), 0));
+        }
+        const unitCircleGeom = new THREE.BufferGeometry().setFromPoints(unitCirclePoints);
+        const unitCircleMat = new THREE.LineBasicMaterial({ color: 0x7799cc, transparent: true, opacity: 0.5, depthWrite: false });
+        const unitCircle = new THREE.Line(unitCircleGeom, unitCircleMat);
+        scene.add(unitCircle);
+
+        // ========== 定义函数集 ==========
+        const totalTheta = 4 * Math.PI;
+        const curveSamples = 1000;
+
+        let currentScale = 1; // 缩放因子，默认 0.5;
+
+        // 函数1：复合极坐标曲线, 完整周期:[0, 2π)
+        function funcPoint1(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: x1 - Math.sin(theta) * Math.cos(theta) * currentScale,
+                y: y1 - Math.sin(theta) * Math.sin(theta) * currentScale,
+                z: Math.cos(theta) * currentScale,
+                x1: x1,
+                y1: y1
+            };
+        }
+
+        // 函数1.1：复合极坐标曲线, 完整周期:[0, 4π)
+        function funcPointTest(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: x1 - Math.sin(theta) * Math.cos(theta) * currentScale,
+                y: y1 - Math.sin(theta) * Math.sin(theta) * currentScale,
+                z: Math.cos(theta / 2) * currentScale,
+                x1: x1,
+                y1: y1
+            };
+        }
+
+        /** 函数2：复合极坐标曲线, 完整周期:[0, 4π) */
+        function funcPoint2(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: (1 - Math.sin(theta / 2) * currentScale) * x1,
+                y: (1 - Math.sin(theta / 2) * currentScale) * y1,
+                z: Math.cos(theta / 2) * currentScale,
+                x1: x1,
+                y1: y1
+            };
+        }
+
+        // 函数2.1：垂直螺旋线, 完整周期:[0, 4π)
+        function funcPoint2_1(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: x1,
+                y: y1,
+                z: Math.cos(theta / 2) * currentScale / Math.cos(theta / 2),
+                x1: x1,
+                y1: y1
+            };
+        }
+
+        // 函数2.2：水平螺旋线 (cosθ, sinθ, 0), 完整周期:[0, 4π)
+        function funcPoint2_2(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: (- Math.sin(theta / 2) * currentScale * x1) / Math.sin(theta / 2),
+                y: (- Math.sin(theta / 2) * currentScale * y1) / Math.sin(theta / 2),
+                z: 0,
+                x1: x1,
+                y1: y1
+            };
+        }
+        function funcPoint2_2Bak(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: ((1 - Math.sin(theta / 2) * currentScale) * x1 - x1) / Math.sin(theta / 2),
+                y: ((1 - Math.sin(theta / 2) * currentScale) * y1 - y1) / Math.sin(theta / 2),
+                z: 0,
+                x1: x1,
+                y1: y1
+            };
+        }
+
+        /** 函数3：复合极坐标曲线, 完整周期:[0, 4π) */
+        //右螺旋圆偏振
+        function funcPoint3(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            //const theta = t/2;
+            const x = (1 - Math.sin(3 * theta / 2) * currentScale) * x1;
+            const y = (1 - Math.sin(3 * theta / 2) * currentScale) * y1;
+            const z = Math.cos(3 * theta / 2) * currentScale;
+            return { x, y, z, x1, y1 };
+        }
+        //左螺旋圆偏振
+        function funcPoint3_(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.sin(theta + Math.PI/ 2);
+            const y1 = Math.cos(theta + Math.PI/ 2);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            //const theta = t/2;
+            const x = (1 - Math.sin(3 * theta / 2) * currentScale) * x1;
+            const y = (1 - Math.sin(3 * theta / 2) * currentScale) * y1;
+            const z = Math.cos(3 * theta / 2) * currentScale;
+            return { x, y, z, x1, y1 };
+        }
+        function funcPoint3_1(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            //const theta = t/2;
+            const x = x1;
+            const y = y1;
+            const z = Math.cos(3 * theta / 2) * currentScale / Math.cos(theta / 2);
+            return { x, y, z, x1, y1 };
+        }
+        function funcPoint3_2(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            //const theta = t/2;
+            const x = (- Math.sin(3 * theta / 2) * currentScale) * x1 / Math.sin(theta / 2);
+            const y = (- Math.sin(3 * theta / 2) * currentScale) * y1 / Math.sin(theta / 2);
+            const z = 0;
+
+            const x2 = (1 - Math.sin(3 * theta / 2) * currentScale) * x1;
+            const y2 = (1 - Math.sin(3 * theta / 2) * currentScale) * y1;
+            let sign = 1;
+            if(x2*x2 + y2*y2 - x1*x1 - y1*y1>0){
+                sign = -1;
+            }
+            return { x, y, z, x1, y1, sign };
+        }
+
+        /** 未知粒子？ */
+        function funcPoint4(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: (1 - Math.sin(4 * theta / 2) * currentScale) * x1,
+                y: (1 - Math.sin(4 * theta / 2) * currentScale) * y1,
+                z: Math.cos(4 * theta / 2) * currentScale,
+                x1: x1,
+                y1: y1
+            };
+        }
+
+        function funcPointN(theta, n) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: (1 - Math.sin(n * theta / 2) * currentScale) * x1,
+                y: (1 - Math.sin(n * theta / 2) * currentScale) * y1,
+                z: Math.cos(n * theta / 2) * currentScale,
+                x1: x1,
+                y1: y1
+            };
+        }
+        function funcPoint5(theta) {
+            return funcPointN(theta, 5);
+        }
+        function funcPoint6(theta) {
+            return funcPointN(theta, 6);
+        }
+
+
+        // 函数3.1：复合极坐标曲线, 完整周期:[0, 4π)
+        function funcPoint3_99(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.cos(theta - Math.PI/2);
+            const y1 = Math.sin(theta - Math.PI/2);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            const x = Math.sin(theta / 2) * currentScale + 2 * Math.sin(theta);
+            const y = Math.cos(theta / 2) * currentScale - 2 * Math.cos(theta);
+            const z = -Math.sin(3 * theta / 2) * currentScale;
+            return { x, y, z, x1, y1 };
+        }
+        function funcPoint3_1bak(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            //const theta = t/2;
+            const x = (1 + Math.cos(3 * theta / 2) * currentScale / 2) * x1;
+            const y = (1 + Math.cos(3 * theta / 2) * currentScale / 2) * y1;
+            const z = Math.cos(theta / 2) * currentScale / 2;
+            return { x, y, z, x1, y1 };
+        }
+        function funcPoint3_2bak(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            //const theta = t/2;
+            const x = (1 + Math.cos(3 * theta / 2) * currentScale / 2) * x1;
+            const y = (1 + Math.cos(3 * theta / 2) * currentScale / 2) * y1;
+            const z = Math.sin(theta / 2) * currentScale / 2;
+            return { x, y, z, x1, y1 };
+        }
+
+        // function funcPoint3Bak(theta) {
+        //     // 参考点A仍为单位圆上的点
+        //     const x1 = Math.cos(theta - Math.PI/2);
+        //     const y1 = Math.sin(theta - Math.PI/2);
+        //     // 将theta映射到0到2π范围，因为theta范围是0到4π
+        //     const t = theta / 2;
+        //     const x = Math.sin(t) * currentScale + 2 * Math.sin(2 * t);
+        //     const y = Math.cos(t) * currentScale - 2 * Math.cos(2 * t);
+        //     const z = -Math.sin(3 * t) * currentScale;
+        //     return { x, y, z, x1, y1 };
+        // }
+
+        // function funcPoint3PhaseChange(theta) {
+        //     // 参考点A仍为单位圆上的点
+        //     const x1 = Math.cos(theta);
+        //     const y1 = Math.sin(theta);
+        //     // 将theta映射到0到2π范围，因为theta范围是0到4π
+        //     //const theta = t/2;
+        //     const x = (2 + Math.sin(3 * theta / 2) * currentScale) * x1;
+        //     const y = (2 + Math.sin(3 * theta / 2) * currentScale) * y1;
+        //     const z = -Math.cos(3 * theta / 2) * currentScale;
+        //     return { x, y, z, x1, y1 };
+        // }
+
+        function funcPoint3Test(theta) {
+            // 参考点A仍为单位圆上的点
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            // 将theta映射到0到2π范围，因为theta范围是0到4π
+            //const theta = t/2;
+            const x = (1 + Math.cos(3 * theta / 2) * currentScale / 2) * x1;
+            const y = (1 + Math.cos(3 * theta / 2) * currentScale / 2) * y1;
+            const z = - Math.sin(3 * theta / 2) * currentScale / 2;
+            return { x, y, z, x1, y1 };
+        }
+
+        // 函数2.3：复合极坐标曲线, 完整周期:[0, 4π) 电场磁场反转版
+        function funcPoint5Test(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+            return {
+                x: x1 - Math.cos(theta / 2) * Math.cos(theta) * currentScale,
+                y: y1 - Math.cos(theta / 2) * Math.sin(theta) * currentScale,
+                z: Math.sin(theta) * currentScale,
+                x1: x1,
+                y1: y1
+            };
+        }
+
+
+        const functions = {
+            func1: {
+                name: '函数1：圆偏振电磁波圆周运动',
+                calcPoint: funcPoint1
+            },
+            func2: {
+                name: '函数2：电子-圆偏振电磁波圆周运动（自旋1/2）',
+                calcPoint: funcPoint2
+            },
+            func2_1: {
+                name: '函数2.1：电子-电磁波圆周运动-磁场分量',
+                calcPoint: funcPoint2_1
+            },
+            func2_2: {
+                name: '函数2.2：电子-电磁波圆周运动-电场分量',
+                calcPoint: funcPoint2_2
+            },
+            func3: {
+                name: '函数3：质子-圆偏振电磁波圆周运动（自旋1/2）',
+                calcPoint: funcPoint3
+            },
+            func3_1: {
+                name: '函数3：质子-圆偏振电磁波圆周运动-磁场分量',
+                calcPoint: funcPoint3_1
+            },
+            func3_2: {
+                name: '函数3：质子-圆偏振电磁波圆周运动-电场分量',
+                calcPoint: funcPoint3_2
+            },
+            func3Test: {
+                name: '函数3：质子-圆偏振电磁波圆周运动（自旋1/2）-测试',
+                calcPoint: funcPoint3Test
+            },
+
+            func4: {
+                name: '函数4：未知粒子4？-圆偏振电磁波圆周运动',
+                calcPoint: funcPoint4
+            },
+            func5: {
+                name: '函数5：未知粒子5？-圆偏振电磁波圆周运动（自旋1/2）',
+                calcPoint: funcPoint5
+            },
+            func6: {
+                name: '函数6：未知粒子6?-圆偏振电磁波圆周运动',
+                calcPoint: funcPoint6
+            }
+            // func4: {
+            //     name: '函数3.1：质子-圆偏振电磁波圆周运动（自旋1/2）-测试',
+            //     calcPoint: funcPoint4
+            // }
+        };
+
+        let currentFuncKey = 'func1';
+
+
+        // ========== 动态生成下拉框选项 ==========
+        const functionSelect = document.getElementById('function-select');
+        function populateSelect() {
+            functionSelect.innerHTML = '';
+            for (const [key, value] of Object.entries(functions)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value.name;
+                functionSelect.appendChild(option);
+            }
+            functionSelect.value = currentFuncKey;
+        }
+        populateSelect();
+
+        // ========== 动态曲线对象 ==========
+        const curveMat = new THREE.LineBasicMaterial({ color: 0xffaa44, transparent: true, opacity: 0.95, depthWrite: false });
+        const glowCurveMat = new THREE.LineBasicMaterial({ color: 0xffaa44, transparent: true, opacity: 0.25, depthWrite: false });
+
+        const curveLine = new THREE.Line(new THREE.BufferGeometry(), curveMat);
+        const glowCurve = new THREE.Line(new THREE.BufferGeometry(), glowCurveMat);
+        glowCurve.scale.set(1.02, 1.02, 1.02);
+        scene.add(curveLine);
+        scene.add(glowCurve);
+
+        // ========== 移动点与参考点 ==========
+        const pointBGeom = new THREE.SphereGeometry(0.12, 20, 20);
+        const pointBMat = new THREE.MeshStandardMaterial({
+            color: 0xFFEB3B,  //ffff00
+            emissive: 0xff8800,
+            emissiveIntensity: 0.8,
+            roughness: 0.3,
+            metalness: 0.1,
+        });
+        const pointB = new THREE.Mesh(pointBGeom, pointBMat);
+        pointB.castShadow = true;
+        scene.add(pointB);
+
+        const glowBGeom = new THREE.SphereGeometry(0.2, 16, 16);
+        const glowBMat = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.25, depthWrite: false });
+        const glowB = new THREE.Mesh(glowBGeom, glowBMat);
+        scene.add(glowB);
+
+        const pointAGeom = new THREE.SphereGeometry(0.1, 16, 16);
+        const pointAMat = new THREE.MeshStandardMaterial({
+            color: 0x9851cc,
+            emissive: 0x64298E,
+            emissiveIntensity: 0.7,
+            roughness: 0.3,
+        });
+        const pointA = new THREE.Mesh(pointAGeom, pointAMat);
+        scene.add(pointA);
+
+        // 连接线 A -> B（虚线）
+        const connectionLineGeom = new THREE.BufferGeometry();
+        const connectionLineMat = new THREE.LineDashedMaterial({
+            color: 0xffffff,
+            dashSize: 0.08,
+            gapSize: 0.06,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: false,
+        });
+        const connectionLine = new THREE.Line(connectionLineGeom, connectionLineMat);
+        scene.add(connectionLine);
+
+        // 从原点到点A的径向线
+        const originToAGeom = new THREE.BufferGeometry();
+        const originToAMat = new THREE.LineDashedMaterial({
+            color: 0xcc44cc,
+            dashSize: 0.06,
+            gapSize: 0.05,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: false,
+        });
+        const originToA = new THREE.Line(originToAGeom, originToAMat);
+        scene.add(originToA);
+
+        // ========== UI元素 ==========
+        //const functionSelect = document.getElementById('function-select');
+        const slider = document.getElementById('slider-theta');
+        const sliderScale = document.getElementById('slider-scale');
+        const dispTheta = document.getElementById('disp-theta');
+        const dispX = document.getElementById('disp-x');
+        const dispY = document.getElementById('disp-y');
+        const dispZ = document.getElementById('disp-z');
+        const dispE = document.getElementById('disp-E');
+        const dispB = document.getElementById('disp-B');
+        // const dispA = document.getElementById('disp-a');
+        const sliderThetaVal = document.getElementById('slider-theta-val');
+        const sliderScaleVal = document.getElementById('slider-scale-val');
+
+        // ========== 更新曲线 ==========
+        function updateCurve() {
+            const calcPoint = functions[currentFuncKey].calcPoint;
+            const points = [];
+            for (let i = 0; i <= curveSamples; i++) {
+                const theta = (i / curveSamples) * totalTheta;
+                const p = calcPoint(theta);
+                points.push(new THREE.Vector3(p.x, p.y, p.z));
+            }
+            curveLine.geometry.dispose();
+            curveLine.geometry = new THREE.BufferGeometry().setFromPoints(points);
+            glowCurve.geometry.dispose();
+            glowCurve.geometry = new THREE.BufferGeometry().setFromPoints(points);
+            glowCurve.scale.set(1.02, 1.02, 1.02);
+        }
+
+        // ========== 更新点与UI ==========
+        function updateFromTheta(theta) {
+            const calcPoint = functions[currentFuncKey].calcPoint;
+            const result = calcPoint(theta);
+            const x1 = result.x1;
+            const y1 = result.y1;
+            const x = result.x;
+            const y = result.y;
+            const z = result.z;
+            let sign = result.sign;
+
+            /** 计算电磁分量 */
+            // const dx = x-x1;
+            // const dy = y-y1;
+            const dx = x;
+            const dy = y;
+            const dz = z;
+            if(!sign) sign = 1;
+            // if(dx<0 && dy<0){
+            //     sign = -1;
+            // }
+            // if(x1*x1 + y1*y1 - x*x - y*y>0){
+            //     sign = -1;
+            // }
+            // 电场分量
+            const E = sign * Math.sqrt(dx*dx + dy*dy);
+            // 磁场分量
+            const B = dz;
+
+            const pointAPos = new THREE.Vector3(x1, y1, 0);
+            const pointBPos = new THREE.Vector3(x, y, z);
+
+            pointA.position.copy(pointAPos);
+            pointB.position.copy(pointBPos);
+            glowB.position.copy(pointBPos);
+
+            connectionLine.geometry.dispose();
+            connectionLine.geometry = new THREE.BufferGeometry().setFromPoints([pointAPos, pointBPos]);
+            connectionLine.computeLineDistances();
+
+            originToA.geometry.dispose();
+            originToA.geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), pointAPos]);
+            originToA.computeLineDistances();
+
+            const thetaDeg = (theta * 180 / Math.PI).toFixed(1);
+            dispTheta.textContent = theta.toFixed(3) + ' rad  (' + thetaDeg + '°)';
+            dispX.textContent = x.toFixed(4);
+            dispY.textContent = y.toFixed(4);
+            dispZ.textContent = z.toFixed(4);
+            dispE.textContent = E.toFixed(4);
+            dispB.textContent = B.toFixed(4);
+            // dispA.textContent = `(${x1.toFixed(3)}, ${y1.toFixed(3)})`;
+            sliderThetaVal.textContent = theta.toFixed(3);
+            sliderScaleVal.textContent = currentScale.toFixed(3);
+        }
+
+        // ========== 函数切换 ==========
+        function selectFunction(key) {
+            currentFuncKey = key;
+            updateCurve();
+            updateFromTheta(parseFloat(slider.value));
+            // 更新下拉框选中状态
+            functionSelect.value = key;
+        }
+
+        functionSelect.addEventListener('change', (e) => {
+            selectFunction(e.target.value);
+        });
+
+        // ========== 滑块事件 ==========
+        slider.addEventListener('input', (e) => {
+            const theta = parseFloat(e.target.value);
+            updateFromTheta(theta);
+        });
+
+        sliderScale.addEventListener('input', (e) => {
+            currentScale = parseFloat(e.target.value);
+            // 更新曲线和点
+            updateCurve();
+            updateFromTheta(parseFloat(slider.value));
+        });
+
+        // ========== 键盘控制 ==========
+        window.addEventListener('keydown', (e) => {
+            const step = 0.05;
+            const current = parseFloat(slider.value);
+            switch (e.key.toLowerCase()) {
+                case 'arrowright':
+                case 'd':
+                    slider.value = Math.min(totalTheta, current + step);
+                    updateFromTheta(parseFloat(slider.value));
+                    e.preventDefault();
+                    break;
+                case 'arrowleft':
+                case 'a':
+                    slider.value = Math.max(0, current - step);
+                    updateFromTheta(parseFloat(slider.value));
+                    e.preventDefault();
+                    break;
+                case 'home':
+                    slider.value = 0;
+                    updateFromTheta(0);
+                    break;
+                case 'end':
+                    slider.value = totalTheta;
+                    updateFromTheta(totalTheta);
+                    break;
+            }
+        });
+
+        // ========== 窗口调整 ==========
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // ========== 初始化 ==========
+        // 设置默认选中
+        functionSelect.value = 'func1';
+        selectFunction('func1');
+        slider.value = 0;
+        updateFromTheta(0);
+
+        // ========== 渲染循环 ==========
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
