@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>束缚态圆偏振电磁波驻波圆周运动: 复合极坐标函数 - 三维曲线</title>
+    <!-- Standing Wave Model of Electron and Proton -->
     <style>
         :root {
             --bg: #0d1117;
@@ -12,11 +13,11 @@
             --text-dim: #8b949e;
             --accent: #58a6ff;
             --border: #30363d;
-            --x-color: #ff4d4d;
-            --y-color: #4dff4d;
-            --z-color: #4da6ff;
+            --x-color: #cd3a3a;
+            --y-color: #299129;
+            --z-color: #3768ba;
             --curve-color: #ffaa44;
-            --point-color: #ffff00;
+            --point-color: #fff93a;
             --unit-circle-color: #7799cc;
         }
 
@@ -98,7 +99,8 @@
             text-align: center;
             margin-bottom: 12px;
             letter-spacing: 1px;
-            background: linear-gradient(135deg, #58a6ff, #9851cc);
+            /*background: linear-gradient(135deg, #58a6ff, #9851cc);*/
+            background: #58a6ff;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -107,6 +109,7 @@
         .function-selector {
             display: flex;
             justify-content: center;
+            gap: 10px;
             margin-bottom: 14px;
         }
         .function-selector select {
@@ -286,6 +289,12 @@
             <select id="function-select" title="选择函数">
                 <!-- 选项由JS动态生成 -->
             </select>
+            <select id="knot" title="扭结数 n">
+                <option value="1">电子 n = 1</option>
+                <option value="3">质子 n = 3</option>
+                <option value="5">未知 n = 5</option>
+                <option value="7">未知 n = 7</option>
+            </select>
         </div>
         <div class="coord-display" id="coord-display">
             <div class="coord-item"><span class="label">θ</span><span class="value theta-val" id="disp-theta">0.00 rad</span></div>
@@ -303,9 +312,9 @@
                 </div>
             </div>
             <div class="slider-row">
-                <div class="slider-label">缩放 = <span class="scale-val" id="slider-scale-val">0.50</span></div>
+                <div class="slider-label">缩放 = <span class="scale-val" id="slider-scale-val">0.34</span></div>
                 <div class="slider-container">
-                    <input type="range" id="slider-scale" min="0.25" max="2" step="0.01" value="1" class="scale-slider">
+                    <input type="range" id="slider-scale" min="0.25" max="2" step="0.01" value="0.34" class="scale-slider">
                 </div>
             </div>
         </div>
@@ -391,10 +400,12 @@
         const ARROW_HEAD_LENGTH = 0.25;
         const ARROW_HEAD_RADIUS = 0.1;
 
+        const protonScale = 9.13;    // for visualization only, realistic value is 1826
+
         // ========== 坐标轴 ==========
-        const xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0xff4d4d, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
-        const yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0x4dff4d, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
-        const zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0x4da6ff, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
+        const xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0xcd3a3a, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
+        const yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0x299129, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
+        const zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), AXIS_LENGTH, 0x3768ba, ARROW_HEAD_LENGTH, ARROW_HEAD_RADIUS);
         scene.add(xAxis, yAxis, zAxis);
 
         // 负半轴虚线
@@ -409,9 +420,9 @@
             line.computeLineDistances();
             return line;
         }
-        scene.add(createNegativeAxis([1, 0, 0], 0xff4d4d));
-        scene.add(createNegativeAxis([0, 1, 0], 0x4dff4d));
-        scene.add(createNegativeAxis([0, 0, 1], 0x4da6ff));
+        scene.add(createNegativeAxis([1, 0, 0], 0xcd3a3a));
+        scene.add(createNegativeAxis([0, 1, 0], 0x299129));
+        scene.add(createNegativeAxis([0, 0, 1], 0x3768ba));
 
         // 坐标轴标签
         function createLabel(text, pos, cls) {
@@ -429,16 +440,16 @@
         createLabel('O', new THREE.Vector3(-0.2, -0.2, -0.2), 'axis-label-o');
 
         // ========== 网格 ==========
-        const gridXY = new THREE.GridHelper(8, 16, 0x4da6ff, 0x2a3a4a);
+        const gridXY = new THREE.GridHelper(8, 16, 0x2a3a4a, 0x2a3a4a);
         gridXY.rotation.x = Math.PI / 2;
         gridXY.material.transparent = true;
-        gridXY.material.opacity = 0.3;
+        gridXY.material.opacity = 0.2;
         gridXY.material.depthWrite = false;
         scene.add(gridXY);
 
-        const gridXZ = new THREE.GridHelper(8, 16, 0x4dff4d, 0x2a4a3a);
+        const gridXZ = new THREE.GridHelper(8, 16, 0x2a3a4a, 0x2a4a3a);
         gridXZ.material.transparent = true;
-        gridXZ.material.opacity = 0.25;
+        gridXZ.material.opacity = 0.2;
         gridXZ.material.depthWrite = false;
         scene.add(gridXZ);
 
@@ -458,16 +469,19 @@
         const totalTheta = 4 * Math.PI;
         const curveSamples = 1000;
 
-        let currentScale = 1; // 缩放因子，默认 0.5;
+        let currentScale = parseFloat(document.getElementById('slider-scale').value); // 缩放因子，默认 0.34;
 
-        // 函数1：复合极坐标曲线, 完整周期:[0, 2π)
+        // TODO 下拉框控制参数 扭结数n, n=1,2,3,...
+        let n = parseInt(document.getElementById('knot').value);
+
+        // 函数1：函数通式 复合极坐标曲线, 完整周期:[0, 2π)
         function funcPoint1(theta) {
             const x1 = Math.cos(theta);
             const y1 = Math.sin(theta);
             return {
-                x: x1 - Math.sin(theta) * Math.cos(theta) * currentScale,
-                y: y1 - Math.sin(theta) * Math.sin(theta) * currentScale,
-                z: Math.cos(theta) * currentScale,
+                x: (1 - Math.sin(n * theta / 2) * currentScale) * x1,
+                y: (1 - Math.sin(n * theta / 2) * currentScale) * y1,
+                z: Math.cos(n * theta / 2) * currentScale,
                 x1: x1,
                 y1: y1
             };
@@ -487,9 +501,22 @@
         }
 
         /** 函数2：复合极坐标曲线, 完整周期:[0, 4π) */
+        // 右旋圆偏振-电子
         function funcPoint2(theta) {
             const x1 = Math.cos(theta);
             const y1 = Math.sin(theta);
+            return {
+                x: (1 - Math.sin(theta / 2) * currentScale) * x1,
+                y: (1 - Math.sin(theta / 2) * currentScale) * y1,
+                z: Math.cos(theta / 2) * currentScale,
+                x1: x1,
+                y1: y1
+            };
+        }
+        // 左旋圆偏振-正电子
+        function funcPoint2_(theta) {
+            const x1 = Math.sin(theta + Math.PI/ 2);
+            const y1 = Math.cos(theta + Math.PI/ 2);
             return {
                 x: (1 - Math.sin(theta / 2) * currentScale) * x1,
                 y: (1 - Math.sin(theta / 2) * currentScale) * y1,
@@ -506,7 +533,7 @@
             return {
                 x: x1,
                 y: y1,
-                z: Math.cos(theta / 2) * currentScale / Math.cos(theta / 2),
+                z: Math.cos(theta / 2) * currentScale * Math.cos(theta / 2),
                 x1: x1,
                 y1: y1
             };
@@ -516,20 +543,71 @@
         function funcPoint2_2(theta) {
             const x1 = Math.cos(theta);
             const y1 = Math.sin(theta);
+
+            const x = (- Math.sin(theta / 2) * currentScale * x1) * Math.sin(theta / 2);
+            const y = (- Math.sin(theta / 2) * currentScale * y1) * Math.sin(theta / 2);
+            let sign = -1;
+            // if(x*x + y*y - x1*x1 - y1*y1>0){
+            //     sign = -1;
+            // }
             return {
-                x: (- Math.sin(theta / 2) * currentScale * x1) / Math.sin(theta / 2),
-                y: (- Math.sin(theta / 2) * currentScale * y1) / Math.sin(theta / 2),
+                x: x,    //sign *
+                y: y,    //sign *
                 z: 0,
                 x1: x1,
-                y1: y1
+                y1: y1,
+                sign: sign
+            };
+        }
+
+        function funcPoint2_2_polar(theta) {
+            const x1 = Math.cos(theta);
+            const y1 = Math.sin(theta);
+
+            const x = (- Math.sin(theta / 2) * currentScale * x1) / Math.sin(theta / 2);
+            const y = (- Math.sin(theta / 2) * currentScale * y1) / Math.sin(theta / 2);
+            let sign = -1;
+            // if(x*x + y*y - x1*x1 - y1*y1>0){
+            //     sign = -1;
+            // }
+            return {
+                x: sign * x,
+                y: sign * y,
+                z: 0,
+                x1: x1,
+                y1: y1,
+                sign: sign
             };
         }
         function funcPoint2_2Bak(theta) {
             const x1 = Math.cos(theta);
             const y1 = Math.sin(theta);
             return {
-                x: ((1 - Math.sin(theta / 2) * currentScale) * x1 - x1) / Math.sin(theta / 2),
-                y: ((1 - Math.sin(theta / 2) * currentScale) * y1 - y1) / Math.sin(theta / 2),
+                x: ((1 - Math.sin(theta / 2) * currentScale) * x1),
+                y: ((1 - Math.sin(theta / 2) * currentScale) * y1),
+                z: 0,
+                x1: x1,
+                y1: y1
+            };
+        }
+
+        function funcPoint2_1_(theta) {
+            const x1 = Math.sin(theta + Math.PI/ 2);
+            const y1 = Math.cos(theta + Math.PI/ 2);
+            return {
+                x: x1,
+                y: y1,
+                z: Math.cos(theta / 2) * currentScale / Math.cos(theta / 2),
+                x1: x1,
+                y1: y1
+            };
+        }
+        function funcPoint2_2_(theta) {
+            const x1 = Math.sin(theta + Math.PI/ 2);
+            const y1 = Math.cos(theta + Math.PI/ 2);
+            return {
+                x: (- Math.sin(theta / 2) * currentScale * x1) / Math.sin(theta / 2),
+                y: (- Math.sin(theta / 2) * currentScale * y1) / Math.sin(theta / 2),
                 z: 0,
                 x1: x1,
                 y1: y1
@@ -544,9 +622,9 @@
             const y1 = Math.sin(theta);
             // 将theta映射到0到2π范围，因为theta范围是0到4π
             //const theta = t/2;
-            const x = (1 - Math.sin(3 * theta / 2) * currentScale) * x1;
-            const y = (1 - Math.sin(3 * theta / 2) * currentScale) * y1;
-            const z = Math.cos(3 * theta / 2) * currentScale;
+            const x = (1 - Math.sin(3 * theta / 2) * currentScale) * x1/protonScale;    // protonScale 1.826 fro visualization, realistic value is 1826
+            const y = (1 - Math.sin(3 * theta / 2) * currentScale) * y1/protonScale;
+            const z = Math.cos(3 * theta / 2) * currentScale/protonScale;
             return { x, y, z, x1, y1 };
         }
         //左螺旋圆偏振
@@ -556,9 +634,9 @@
             const y1 = Math.cos(theta + Math.PI/ 2);
             // 将theta映射到0到2π范围，因为theta范围是0到4π
             //const theta = t/2;
-            const x = (1 - Math.sin(3 * theta / 2) * currentScale) * x1;
-            const y = (1 - Math.sin(3 * theta / 2) * currentScale) * y1;
-            const z = Math.cos(3 * theta / 2) * currentScale;
+            const x = (1 - Math.sin(3 * theta / 2) * currentScale) * x1/protonScale;
+            const y = (1 - Math.sin(3 * theta / 2) * currentScale) * y1/protonScale;
+            const z = Math.cos(3 * theta / 2) * currentScale/protonScale;
             return { x, y, z, x1, y1 };
         }
         function funcPoint3_1(theta) {
@@ -569,7 +647,7 @@
             //const theta = t/2;
             const x = x1;
             const y = y1;
-            const z = Math.cos(3 * theta / 2) * currentScale / Math.cos(theta / 2);
+            const z = Math.cos(3 * theta / 2) * currentScale * Math.cos(3 * theta / 2);
             return { x, y, z, x1, y1 };
         }
         function funcPoint3_2(theta) {
@@ -578,8 +656,8 @@
             const y1 = Math.sin(theta);
             // 将theta映射到0到2π范围，因为theta范围是0到4π
             //const theta = t/2;
-            const x = (- Math.sin(3 * theta / 2) * currentScale) * x1 / Math.sin(theta / 2);
-            const y = (- Math.sin(3 * theta / 2) * currentScale) * y1 / Math.sin(theta / 2);
+            const x = (- Math.sin(3 * theta / 2) * currentScale) * x1 * Math.sin(3 * theta / 2);
+            const y = (- Math.sin(3 * theta / 2) * currentScale) * y1 * Math.sin(3 * theta / 2);
             const z = 0;
 
             const x2 = (1 - Math.sin(3 * theta / 2) * currentScale) * x1;
@@ -709,12 +787,18 @@
 
         const functions = {
             func1: {
-                name: '函数1：圆偏振电磁波圆周运动',
+                name: '函数1：通用函数式，扭结数为n',
                 calcPoint: funcPoint1
             },
             func2: {
                 name: '函数2：电子-圆偏振电磁波圆周运动（自旋1/2）',
-                calcPoint: funcPoint2
+                calcPoint: funcPoint2,
+                desc: '右螺旋圆偏振'
+            },
+            func2_: {
+                name: '函数2：正电子-圆偏振电磁波圆周运动（自旋1/2）',
+                calcPoint: funcPoint2_,
+                desc: '左螺旋圆偏振'
             },
             func2_1: {
                 name: '函数2.1：电子-电磁波圆周运动-磁场分量',
@@ -724,9 +808,21 @@
                 name: '函数2.2：电子-电磁波圆周运动-电场分量',
                 calcPoint: funcPoint2_2
             },
+            func2_1_: {
+                name: '函数2.1：正电子-电磁波圆周运动-磁场分量',
+                calcPoint: funcPoint2_1_
+            },
+            func2_2_: {
+                name: '函数2.2：正电子-电磁波圆周运动-电场分量',
+                calcPoint: funcPoint2_2_
+            },
             func3: {
                 name: '函数3：质子-圆偏振电磁波圆周运动（自旋1/2）',
                 calcPoint: funcPoint3
+            },
+            func3_: {
+                name: '函数3：反质子-圆偏振电磁波圆周运动（自旋1/2）',
+                calcPoint: funcPoint3_
             },
             func3_1: {
                 name: '函数3：质子-圆偏振电磁波圆周运动-磁场分量',
@@ -742,11 +838,11 @@
             },
 
             func4: {
-                name: '函数4：未知粒子4？-圆偏振电磁波圆周运动',
+                name: '函数4：未知粒子4?-圆偏振电磁波圆周运动',
                 calcPoint: funcPoint4
             },
             func5: {
-                name: '函数5：未知粒子5？-圆偏振电磁波圆周运动（自旋1/2）',
+                name: '函数5：未知粒子5?-圆偏振电磁波圆周运动（自旋1/2）',
                 calcPoint: funcPoint5
             },
             func6: {
@@ -787,7 +883,7 @@
         scene.add(glowCurve);
 
         // ========== 移动点与参考点 ==========
-        const pointBGeom = new THREE.SphereGeometry(0.12, 20, 20);
+        const pointBGeom = new THREE.SphereGeometry(2*0.12/protonScale, 20, 20);
         const pointBMat = new THREE.MeshStandardMaterial({
             color: 0xFFEB3B,  //ffff00
             emissive: 0xff8800,
@@ -799,12 +895,12 @@
         pointB.castShadow = true;
         scene.add(pointB);
 
-        const glowBGeom = new THREE.SphereGeometry(0.2, 16, 16);
+        const glowBGeom = new THREE.SphereGeometry(2*0.2/protonScale, 16, 16);
         const glowBMat = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.25, depthWrite: false });
         const glowB = new THREE.Mesh(glowBGeom, glowBMat);
         scene.add(glowB);
 
-        const pointAGeom = new THREE.SphereGeometry(0.1, 16, 16);
+        const pointAGeom = new THREE.SphereGeometry(2*0.1/protonScale, 16, 16);
         const pointAMat = new THREE.MeshStandardMaterial({
             color: 0x9851cc,
             emissive: 0x64298E,
@@ -933,6 +1029,11 @@
             updateFromTheta(parseFloat(slider.value));
             // 更新下拉框选中状态
             functionSelect.value = key;
+            if(currentFuncKey === 'func1'){
+                document.getElementById('knot').style.display = '';
+            } else {
+                document.getElementById('knot').style.display = 'none';
+            }
         }
 
         functionSelect.addEventListener('change', (e) => {
@@ -948,6 +1049,13 @@
         sliderScale.addEventListener('input', (e) => {
             currentScale = parseFloat(e.target.value);
             // 更新曲线和点
+            updateCurve();
+            updateFromTheta(parseFloat(slider.value));
+        });
+
+        // ========== 扭结数选择 ==========
+        document.getElementById('knot').addEventListener('change', (e) => {
+            n = parseInt(e.target.value);
             updateCurve();
             updateFromTheta(parseFloat(slider.value));
         });
